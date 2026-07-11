@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     port: int = 8082
     log_level: str = "info"
     environment: str = "dev"
+    cors_origins: str = "http://localhost:5173"
 
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5459/backtemplate"
 
@@ -21,6 +22,10 @@ class Settings(BaseSettings):
     mail_username: str = ""
     mail_password: str = ""
     mail_from: str = "no-reply@example.com"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 
 @lru_cache

@@ -26,3 +26,11 @@ dev = [
     "pytest-asyncio>=1.4.0",
     "ruff>=0.15.21",
 ]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+# One shared event loop for the whole session — the SQLAlchemy async engine is a
+# module-level singleton bound to whatever loop was running when it was created;
+# pytest-asyncio's default per-test loop would break its pooled connections.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"

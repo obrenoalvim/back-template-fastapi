@@ -1,7 +1,7 @@
 [project]
 name = "back-template-fastapi"
 version = "0.1.0"
-description = "Add your description here"
+description = "FastAPI backend template: JWT auth, async SQLAlchemy + Alembic, rate limiting, structured logging, Docker"
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.18.5",

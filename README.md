@@ -105,6 +105,7 @@ See `.env.example` for the full, commented list.
 | `DB_HOST_PORT/NAME/USER/PASSWORD`  | Docker only | `docker-compose.yml` defaults, used to compose `DATABASE_URL`       |
 | `ENVIRONMENT`                      | no          | `dev` (pretty logs) or anything else (JSON logs); default `dev`     |
 | `LOG_LEVEL`                        | no          | structlog level; default `info`                                     |
+| `CORS_ORIGINS`                     | no          | Comma-separated origins allowed to call this API from the browser (this backend, unlike `back-template-spring`, has no BFF pairing — `front-template-react` calls it directly); default `http://localhost:5173` |
 | `MAIL_HOST`/`MAIL_PORT`/`MAIL_USERNAME`/`MAIL_PASSWORD` | no | Sends real email via SMTP; without `MAIL_HOST`, emails are logged to console instead |
 
 `app/core/config.py` validates these with `pydantic-settings` at import time.

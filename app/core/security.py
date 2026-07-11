@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import StrEnum
 
 import bcrypt
@@ -22,7 +22,7 @@ def verify_password(password: str, password_hash: str) -> bool:
 
 
 def create_access_token(user_id: str, email: str, role: str) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload = {
         "sub": user_id,
         "email": email,
@@ -36,7 +36,7 @@ def create_access_token(user_id: str, email: str, role: str) -> str:
 
 def create_refresh_token(user_id: str) -> tuple[str, str, datetime]:
     """Returns (token, jti, expires_at) — jti is persisted server-side for revocation/rotation."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     jti = str(uuid.uuid4())
     expires_at = now + timedelta(days=settings.jwt_refresh_ttl_days)
     payload = {

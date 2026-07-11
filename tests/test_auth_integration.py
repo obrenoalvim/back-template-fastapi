@@ -39,7 +39,9 @@ async def test_register_verify_login_notes_delete_flow(client):
     access_token = tokens["accessToken"]
     headers = {"Authorization": f"Bearer {access_token}"}
 
-    create_note = await client.post("/api/notes", json={"title": "Hello", "content": "World"}, headers=headers)
+    create_note = await client.post(
+        "/api/notes", json={"title": "Hello", "content": "World"}, headers=headers
+    )
     assert create_note.status_code == 201
     note_id = create_note.json()["id"]
 

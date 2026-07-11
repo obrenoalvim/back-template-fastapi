@@ -27,6 +27,21 @@ dev = [
     "ruff>=0.15.21",
 ]
 
+[tool.ruff]
+line-length = 110
+target-version = "py313"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "B008", # FastAPI's `Depends(...)` as a default arg is the documented pattern, not a bug
+]
+
+[tool.mypy]
+python_version = "3.13"
+ignore_missing_imports = true
+disable_error_code = ["import-untyped"]
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 # One shared event loop for the whole session — the SQLAlchemy async engine is a

@@ -3,11 +3,11 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 import jwt
-from fastapi import APIRouter, Depends, Request, status
+from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ApiException, conflict, not_found, unauthorized
+from app.core.exceptions import conflict, not_found, unauthorized
 from app.core.mail import send_mail
 from app.core.rate_limit import limiter
 from app.core.security import (
@@ -38,7 +38,7 @@ TOKEN_TTL = timedelta(hours=1)
 
 @router.post("/register", status_code=status.HTTP_201_CREATED)
 @limiter.limit("5/minute")
-async def register(request: Request, body: RegisterRequest, db: AsyncSession = Depends(get_db)) -> None:
+async def register(request: Request, body: RegisterRequest, db: AsyncSession = Depends(get_db)) -> Response:
     existing = await db.scalar(select(User).where(User.email == body.email))
     if existing:
         raise conflict("Email already registered")
@@ -54,10 +54,11 @@ async def register(request: Request, body: RegisterRequest, db: AsyncSession = D
     await db.commit()
 
     send_mail(body.email, "Verify your email", f"Verification token: {token}")
+    return Response(status_code=status.HTTP_201_CREATED)
 
 
 @router.get("/verify-email", status_code=status.HTTP_200_OK)
-async def verify_email(token: str, db: AsyncSession = Depends(get_db)) -> None:
+async def verify_email(token: str, db: AsyncSession = Depends(get_db)) -> Response:
     user = await db.scalar(select(User).where(User.verification_token == token))
     if not user:
         raise not_found("Invalid verification token")
@@ -68,6 +69,7 @@ async def verify_email(token: str, db: AsyncSession = Depends(get_db)) -> None:
     user.verification_token = None
     user.verification_token_expires_at = None
     await db.commit()
+    return Response(status_code=status.HTTP_200_OK)
 
 
 @router.post("/login", response_model=TokenResponse)
@@ -105,17 +107,18 @@ async def refresh(body: RefreshRequest, db: AsyncSession = Depends(get_db)) -> T
 
 
 @router.post("/logout", status_code=status.HTTP_200_OK)
-async def logout(body: LogoutRequest, db: AsyncSession = Depends(get_db)) -> None:
+async def logout(body: LogoutRequest, db: AsyncSession = Depends(get_db)) -> Response:
     try:
         payload = decode_token(body.refresh_token)
     except jwt.PyJWTError:
-        return
+        return Response(status_code=status.HTTP_200_OK)
     await db.execute(delete(RefreshToken).where(RefreshToken.jti == payload.get("jti")))
     await db.commit()
+    return Response(status_code=status.HTTP_200_OK)
 
 
 @router.post("/forgot-password", status_code=status.HTTP_200_OK)
-async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)) -> None:
+async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depends(get_db)) -> Response:
     user = await db.scalar(select(User).where(User.email == body.email))
     if user:
         token = secrets.token_urlsafe(32)
@@ -124,10 +127,11 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
         await db.commit()
         send_mail(body.email, "Reset your password", f"Reset token: {token}")
     # Always 200 — no user-enumeration leak, same response whether or not the email exists.
+    return Response(status_code=status.HTTP_200_OK)
 
 
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
-async def reset_password(body: ResetPasswordRequest, db: AsyncSession = Depends(get_db)) -> None:
+async def reset_password(body: ResetPasswordRequest, db: AsyncSession = Depends(get_db)) -> Response:
     user = await db.scalar(select(User).where(User.reset_token == body.token))
     if not user:
         raise not_found("Invalid reset token")
@@ -138,6 +142,7 @@ async def reset_password(body: ResetPasswordRequest, db: AsyncSession = Depends(
     user.reset_token = None
     user.reset_token_expires_at = None
     await db.commit()
+    return Response(status_code=status.HTTP_200_OK)
 
 
 async def _issue_tokens(db: AsyncSession, user: User) -> TokenResponse:

@@ -17,3 +17,11 @@ class NoteResponse(BaseModel):
     updated_at: datetime = Field(serialization_alias="updatedAt")
 
     model_config = {"from_attributes": True, "populate_by_name": True}
+
+
+class NoteWithOwnerResponse(BaseModel):
+    id: uuid.UUID
+    title: str
+    owner_email: str = Field(serialization_alias="ownerEmail")
+
+    model_config = {"from_attributes": True, "populate_by_name": True}

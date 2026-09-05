@@ -164,6 +164,7 @@ FastAPI generates OpenAPI automatically — with the app running: interactive UI
 
 - **Unit** (`uv run pytest tests/test_security.py`): password hashing and JWT roundtrip, no DB.
 - **Integration** (`uv run pytest`): `tests/test_auth_integration.py` drives the full register → verify → login → notes CRUD → refresh → delete-account flow through the ASGI app (`httpx.ASGITransport`, no real HTTP server needed) against a real Postgres — no mocked DB.
+- **N+1 guard** (`tests/test_admin_query_count.py`): `GET /admin/notes` (`list_notes_with_owners` in `app/api/routes/admin.py`) loads every note's owner with `joinedload(Note.owner)`, a single SQL JOIN. The test counts the actual SQL statements sent to Postgres (via SQLAlchemy's `before_cursor_execute` event, see `tests/query_counter.py`) and asserts it stays at exactly 1 no matter how many notes exist. `Note.owner` is also declared `lazy="raise"`, so any future code that forgets the `joinedload` and touches `.owner` outside an eager-loaded query fails immediately with a clear error instead of silently turning into 1+N queries in production.
 - CI spins up a Postgres service container and runs the whole suite against it.
 
 ## CI/CD

@@ -2,6 +2,8 @@
 
 # back-template-fastapi
 
+[![CI](https://github.com/obrenoalvim/back-template-fastapi/actions/workflows/ci.yml/badge.svg)](https://github.com/obrenoalvim/back-template-fastapi/actions/workflows/ci.yml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Template de backend pronto para produção: FastAPI, Python 3.13, SQLAlchemy 2.0 assíncrono + Alembic + Postgres, auth JWT (access token + refresh token rotativo/revogável), rate limiting, logging estruturado e Docker, tudo integrado e testado de ponta a ponta. Irmão de `back-template-nest`, `back-template-laravel` e `back-template-spring`: mesmo contrato de endpoints e formato de erro, stack diferente.
 
 ## Conteúdo

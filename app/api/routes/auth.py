@@ -16,6 +16,7 @@ from app.core.security import (
     create_refresh_token,
     decode_token,
     hash_password,
+    hash_token,
     verify_password,
 )
 from app.db.session import get_db
@@ -47,7 +48,7 @@ async def register(request: Request, body: RegisterRequest, db: AsyncSession = D
     user = User(
         email=body.email,
         password_hash=hash_password(body.password),
-        verification_token=token,
+        verification_token=hash_token(token),
         verification_token_expires_at=datetime.now(UTC) + TOKEN_TTL,
     )
     db.add(user)
@@ -59,7 +60,7 @@ async def register(request: Request, body: RegisterRequest, db: AsyncSession = D
 
 @router.get("/verify-email", status_code=status.HTTP_200_OK)
 async def verify_email(token: str, db: AsyncSession = Depends(get_db)) -> Response:
-    user = await db.scalar(select(User).where(User.verification_token == token))
+    user = await db.scalar(select(User).where(User.verification_token == hash_token(token)))
     if not user:
         raise not_found("Invalid verification token")
     if user.verification_token_expires_at and user.verification_token_expires_at < datetime.now(UTC):
@@ -122,7 +123,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
     user = await db.scalar(select(User).where(User.email == body.email))
     if user:
         token = secrets.token_urlsafe(32)
-        user.reset_token = token
+        user.reset_token = hash_token(token)
         user.reset_token_expires_at = datetime.now(UTC) + TOKEN_TTL
         await db.commit()
         send_mail(body.email, "Reset your password", f"Reset token: {token}")
@@ -132,7 +133,7 @@ async def forgot_password(body: ForgotPasswordRequest, db: AsyncSession = Depend
 
 @router.post("/reset-password", status_code=status.HTTP_200_OK)
 async def reset_password(body: ResetPasswordRequest, db: AsyncSession = Depends(get_db)) -> Response:
-    user = await db.scalar(select(User).where(User.reset_token == body.token))
+    user = await db.scalar(select(User).where(User.reset_token == hash_token(body.token)))
     if not user:
         raise not_found("Invalid reset token")
     if user.reset_token_expires_at and user.reset_token_expires_at < datetime.now(UTC):

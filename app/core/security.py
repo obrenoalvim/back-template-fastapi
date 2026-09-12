@@ -1,3 +1,4 @@
+import hashlib
 import uuid
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
@@ -19,6 +20,16 @@ def hash_password(password: str) -> str:
 
 def verify_password(password: str, password_hash: str) -> bool:
     return bcrypt.checkpw(password.encode(), password_hash.encode())
+
+
+def hash_token(token: str) -> str:
+    """Deterministic hash for single-use bearer tokens (email verification, password reset).
+
+    Not bcrypt: these are high-entropy random tokens (secrets.token_urlsafe), not
+    low-entropy passwords, so a fast deterministic hash used purely as a DB lookup
+    key is appropriate and matches how RefreshToken.jti is already handled.
+    """
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 def create_access_token(user_id: str, email: str, role: str) -> str:

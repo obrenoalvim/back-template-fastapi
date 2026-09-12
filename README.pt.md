@@ -71,6 +71,8 @@ alembic/
 tests/
   test_security.py                    # unitário: hash de senha, roundtrip de JWT
   test_auth_integration.py             # integração: fluxo completo de auth + notas, Postgres real
+  test_admin_query_count.py            # guarda N+1: joinedload continua em 1 query
+  query_counter.py                     # contador de queries SQL usado pela guarda acima
 ```
 
 ## Começando (Docker — recomendado)

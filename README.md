@@ -71,6 +71,8 @@ alembic/
 tests/
   test_security.py                    # unit: password hash, JWT roundtrip
   test_auth_integration.py             # integration: full auth + notes flow, real Postgres
+  test_admin_query_count.py            # N+1 guard: joinedload stays at 1 query
+  query_counter.py                     # SQL statement counter used by the guard above
 ```
 
 ## Getting started (Docker — recommended)
